@@ -1,0 +1,18 @@
+import os
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
+DATABASES = {
+         'default': {
+             'NAME': 'scutdb',
+             'ENGINE': 'django.db.backends.postgresql',
+             'USER': 'root',
+             'PASSWORD': '1',
+             'HOST': 'postgres-env',
+             'PORT': '5432',
+         }
+     }
+
+STATIC_ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'static')
+STATIC_URL = '/static/'
+TIME_ZONE = 'Asia/Dhaka'

@@ -1,0 +1,104 @@
+---
+- name: Configure webserver
+  hosts: mylocal
+  vars:
+    user: vagrant
+    group: vagrant
+    app_name: skut-api
+
+  tasks:
+    - name: sync src directory with remote
+      synchronize:
+        src: ../../
+        dest: /home/{{user}}/skut-api
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=.gitignore"
+          - "--exclude=.idea"
+          - "--exclude=playbooks"
+          - "--exclude=INSTALL.md"
+          - "--exclude=README.md"
+          - "--exclude=*.pyc"
+          - "--exclude=__pycache__"
+          - "--exclude=docker-compose.yml"
+          - "--exclude=Dockerfile"
+          - "--exclude=entrypoint.sh"
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: Install required packages
+      apt: name={{ item }} update_cache=yes state=latest
+      become: yes
+      with_items:
+        - build-essential
+        - nginx
+        - python3
+        - python3-pip
+        - virtualenv
+        - python3-virtualenv
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: check if virtualenv already exists
+      stat: path=/home/vagrant/venv
+      register: venv_dir
+
+    - name: create virtualenv for Django web app
+      become: yes
+      shell: virtualenv --python=/usr/bin/python3 /home/{{user}}/venv
+      when: venv_dir.stat.isdir is not defined
+
+    - name: Install requirements
+      become: yes
+      pip:
+        requirements: /home/{{user}}/skut-api/requirements.txt
+        virtualenv: /home/{{user}}/venv
+        virtualenv_python: python3
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+
+    - name: Install Gunicorn
+      become: yes
+      pip:
+        name: gunicorn
+        virtualenv: /home/{{user}}/venv
+        virtualenv_python: python3
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: Create log directory for gUnicorn
+      become: yes
+      file:
+        path: /home/{{user}}/logs
+        owner: '{{user}}'
+        group: '{{group}}'
+        state: directory
+
+    - name: Configure Gunicorn
+      become: yes
+      template: src=files/skut.service dest=/etc/systemd/system/skut.service
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: Restart gunicorn service
+      become: yes
+      service:
+        name: skut
+        state: restarted
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: Configure nginx
+      become: yes
+      template: src=files/nginx.conf dest=/etc/nginx/sites-available/default
+      register: sync_out
+    - debug: msg={{ sync_out }}
+
+    - name: Restart nginx service
+      become: yes
+      service:
+        name: nginx
+        state: restarted
+      register: sync_out
+    - debug: msg={{ sync_out }}

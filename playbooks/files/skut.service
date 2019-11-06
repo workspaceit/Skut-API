@@ -1,0 +1,16 @@
+[Unit]
+Description="SKUT Web application"
+After=network.target
+
+
+[Service]
+User={{user}}
+Group={{group}}
+WorkingDirectory=/home/{{user}}/skut-api/
+ExecStart=/home/{{user}}/venv/bin/gunicorn --workers 3 --timeout 3000 --bind unix:/home/{{user}}/skut-api/scut_api.sock scut_api.wsgi:application --access-logfile /home/{{user}}/logs/scut-api-access.log --error-logfile /home/{{user}}/logs/scut-api-error.log
+
+type=simple
+log_level=debug
+
+[Install]
+WantedBy=multi-user.target

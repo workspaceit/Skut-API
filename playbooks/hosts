@@ -1,0 +1,27 @@
+[production]
+server1 ansible_host=18.217.96.87
+
+[development]
+dev ansible_host=13.233.127.232
+
+[mylocal]
+vagrant ansible_host=127.0.0.1
+
+[production:vars]
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=keys/skut-ohio-prod.pem
+ansible_python_interpreter = /usr/bin/python3
+ansible_port = 22
+
+
+[development:vars]
+ansible_ssh_user=ubuntu
+ansible_ssh_private_key_file=keys/wsit-mumbai-test-key.pem
+ansible_python_interpreter = /usr/bin/python3
+ansible_port = 22
+
+[mylocal:vars]
+ansible_ssh_user=vagrant
+ansible_ssh_private_key_file=.vagrant/machines/default/virtualbox/private_key
+ansible_python_interpreter = /usr/bin/python3
+ansible_port = 2222
